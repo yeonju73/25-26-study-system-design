@@ -2,8 +2,6 @@ package chapter05;
 
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.Map;
-import chapter05.HashFunction;
 
 public class ConsistentHash<T> {
 
@@ -20,7 +18,11 @@ public class ConsistentHash<T> {
      * @param virtualNodeCount 생성할 가상 노드의 수
      */
     public void add(T node, int virtualNodeCount) {
-        // TODO: 가상 노드를 생성하여 해시 링에 추가하는 로직을 구현하세요.
+        for (int i = 0; i < virtualNodeCount; i++) {
+            String virtualNodeKey = node.toString() + "-" + i;
+            int hash = hashFunction.hash(virtualNodeKey);
+            ring.put(hash, node);
+        }
     }
 
     /**
@@ -28,7 +30,7 @@ public class ConsistentHash<T> {
      * @param node 제거할 서버 노드
      */
     public void remove(T node) {
-        // TODO: 해시 링에서 해당 노드와 연관된 모든 가상 노드를 제거하는 로직을 구현하세요.
+        ring.values().removeIf(value -> value.equals(node));
     }
 
     /**
@@ -37,7 +39,16 @@ public class ConsistentHash<T> {
      * @return 키가 할당될 서버 노드 (링이 비어있으면 null 반환)
      */
     public T get(Object key) {
-        // TODO: 주어진 키의 해시 값을 계산하고, 해시 링에서 키가 할당될 노드를 찾는 로직을 구현하세요.
-        return null;
+        if (ring.isEmpty()) {
+            return null;
+        }
+
+        int hash = hashFunction.hash(key);
+        // tailMap: hash보다 크거나 같은 해시 값의 서브맵
+        SortedMap<Integer, T> tailMap = ring.tailMap(hash);
+
+        // 만약 tailMap이 비어 있다면, 해시 링의 첫 번째 노드로 wrap-around
+        int targetHash = tailMap.isEmpty() ? ring.firstKey() : tailMap.firstKey();
+        return ring.get(targetHash);
     }
 }
