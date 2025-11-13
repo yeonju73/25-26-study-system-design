@@ -3,7 +3,7 @@ package chapter05;
 public class Application {
 
     public static void main(String[] args) {
-        HashFunction hashFunction = new SimpleHashFunction();
+        HashFunction hashFunction = new Murmur3HashFunction();
 
         ConsistentHash<ServerNode> consistentHash = new ConsistentHash<>(hashFunction);
 
